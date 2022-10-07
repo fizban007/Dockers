@@ -1,0 +1,13 @@
+FROM rockylinux:9
+
+# Installing the basics
+RUN dnf makecache --refresh && \
+    dnf install -y vim gcc gcc-g++ wget cpio
+
+# These are compile dependencies of OpenMPI when compiling with LSF and other stuff
+RUN dnf install -y libnsl libnsl2 dnf-plugins-core && \
+    dnf config-manager --enable crb && \
+    dnf install -y libnsl2-devel
+
+# Install modules so that we can use it
+RUN dnf install -y environment-modules
