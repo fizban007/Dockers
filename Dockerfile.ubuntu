@@ -74,10 +74,13 @@ ENV CUDA_VERSION 11.7.1
 #     apt-get update && \
 #     apt-get -y install cuda
 
+# Install misc libraries and software, including a newer version of GCC 11 for better modern code compatibility
 RUN export DEBIAN_FRONTEND=noninteractive && apt-get install -y \
     libboost-dev \
-    cmake
-    # nvidia-driver-510 && \
+    software-properties-common \
+    cmake && \
+    add-apt-repository -y ppa:ubuntu-toolchain-r/test && \
+    apt-get install -y gcc-11
 
 # Create environment exports and a custom mpirun wrapper
 RUN echo "export MPI_HOME=/usr/local/modules/openmpi-${OPENMPI_VERSION}/" > /etc/bashrc && \
@@ -85,7 +88,10 @@ RUN echo "export MPI_HOME=/usr/local/modules/openmpi-${OPENMPI_VERSION}/" > /etc
     # echo "export PATH=/usr/local/modules/openmpi-${OPENMPI_VERSION}/bin:/usr/local/modules/cuda-${CUDA_VERSION}/bin:$PATH" >> /etc/bashrc && \
     echo "export PATH=/usr/local/modules/cuda-${CUDA_VERSION}/bin:\$PATH" >> /etc/bashrc && \
     echo "export LD_LIBRARY_PATH=/opt/ibm/lsfsuite/lsf/10.1/linux2.6-glibc2.3-x86_64/lib:/usr/local/modules/cuda-${CUDA_VERSION}/compat:$LD_LIBRARY_PATH" >> /etc/bashrc && \
+    echo "export CC=gcc-11" >> /etc/bashrc && \
+    echo "export CXX=g++-11" >> /etc/bashrc && \
     echo "#!/usr/bin/bash\n \
 /usr/local/modules/openmpi-${OPENMPI_VERSION}/bin/mpirun --mca btl ^vader,tcp,openib,uct --mca pml ucx \
 --mca opal_common_ucx_opal_mem_hooks 1 -x UCX_NET_DEVICES=mlx5_0:1 \$@" > /usr/bin/mpirun && \
     chmod a+x /usr/bin/mpirun
+
